@@ -9,25 +9,34 @@ import
 } from '@angular/core';
 import { Subscription, fromEvent } from 'rxjs';
 import { pairwise, switchMap, takeUntil } from 'rxjs/operators';
+import { IFigure, ILine } from 'src/app/interfaces'
 
 @Component({
     selector: 'drawing-board',
-    template: `<canvas #canvas></canvas>`,
+    templateUrl: "./drawing-board.component.html",
     styles: [
         `
         canvas {
           border: 1px solid #000;
         }
+        :host button{
+    margin: 3px;
+}
       `
     ]
 })
 export class DrawingBoardComponent implements AfterViewInit, OnDestroy
 {
-    @Input() width = 512;
-    @Input() height = 418;
+    @Input() width = 800;
+    @Input() height = 500;
     @ViewChild('canvas') canvas: ElementRef | any;
     cx: CanvasRenderingContext2D | any;
     drawingSubscription: Subscription | any;
+    figure: IFigure = {
+        id: 1,
+        rgb: '#000',
+        lines: []
+    }
     constructor () { }
 
     ngAfterViewInit()
@@ -44,6 +53,9 @@ export class DrawingBoardComponent implements AfterViewInit, OnDestroy
         this.cx.lineWidth = 3;
         this.cx.lineCap = 'round';
         this.cx.strokeStyle = '#000';
+
+
+
 
         // we'll implement this method to start capturing mouse events
         this.captureEvents(canvasEl);
@@ -86,6 +98,8 @@ export class DrawingBoardComponent implements AfterViewInit, OnDestroy
 
                 // this method we'll implement soon to do the actual drawing
                 this.drawOnCanvas(prevPos, currentPos);
+                const newline: ILine = { start: prevPos, end: currentPos };
+                this.figure.lines.push(newline);
             });
     }
 
@@ -114,6 +128,25 @@ export class DrawingBoardComponent implements AfterViewInit, OnDestroy
             // strokes the current path with the styles we set earlier
             this.cx.stroke();
         }
+    }
+
+    clearCanvas(canvas: HTMLCanvasElement)
+    {
+        const context = canvas.getContext('2d');
+        if (context)
+        {
+            context.clearRect(0, 0, context.canvas.width, context.canvas.height)
+            this.figure.lines = [];
+        }
+
+    }
+    changeColor(rgb: string)
+    {
+        this.cx.strokeStyle = rgb;
+        this.figure.lines.forEach(element =>
+        {
+            this.drawOnCanvas(element.start, element.end)
+        });
     }
 
     ngOnDestroy()

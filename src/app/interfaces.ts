@@ -1,6 +1,6 @@
 export interface IFigure
 {
-    id: number,
+    id: string,
     rgb: string,
     lines: ILine[]
 

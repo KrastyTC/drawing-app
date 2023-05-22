@@ -1,7 +1,34 @@
 
-<div><button (click)="clearCanvas(this.canvas)">Clear</button></div>
+<div><button (click)="clearCanvas(this.canvas)">Clear</button>
+    <button (click)="newFigure()">Add</button>
+</div>
 <div><button (click)="changeColor('#000')">Black</button>
     <button (click)="changeColor('#FF0000')">Red</button>
     <button (click)="changeColor('#0000FF')">Blue</button>
     <button (click)="changeColor('#3cb371')">Green</button></div>
-<div><canvas #canvas></canvas></div>
+<div class="flex-container">
+
+    <div class="flex-child magenta">
+        <canvas #canvas style="min-height: 500px; min-width: 500px;"></canvas>
+    </div>
+    
+    <div class="flex-child green">
+        <table #MatTable mat-table [dataSource]="figures" class="mat-elevation-z8">
+            <ng-container matColumnDef="id">
+                <th mat-header-cell *matHeaderCellDef>id</th>
+                <td mat-cell *matCellDef="let figure">{{figure.id}}</td>
+            </ng-container>
+          
+            <ng-container matColumnDef="rgb">
+                <th mat-header-cell *matHeaderCellDef>rgb</th>
+                <td mat-cell *matCellDef="let figure">{{figure.rgb}}</td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="columnsToDisplay"></tr>
+            <tr (click)="onRowClick(myRowData)" mat-row *matRowDef="let myRowData; columns: columnsToDisplay"></tr>
+    
+        </table>
+        <input type="file" (change)="onFileSelected($event)">
+        <button (click)="downloadJsonFile(figures,'data')">Save</button>
+    </div>
+    
+  </div>

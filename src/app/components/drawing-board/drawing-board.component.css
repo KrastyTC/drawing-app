@@ -1,0 +1,40 @@
+:host canvas {
+    border: 1px solid #000;
+  }
+  :host button{
+      margin: 3px;
+  }
+  .flex-container {
+      display: flex;
+  }
+
+  .flex-child {
+      flex: 1;
+  }  
+
+  .flex-child:first-child {
+      margin-right: 20px;
+  } 
+  .mat-column-rgb {
+    width: 32px;
+    text-align: center;
+    font-weight: bold;
+  }
+  .mat-column-id {
+    width: 32px;
+    text-align: center;
+    font-weight: bold;
+  }
+  .mat-mdc-table {
+    border: 1px solid #000;
+  }
+
+  .mat-mdc-row .mat-mdc-cell {
+    border-bottom: 1px solid transparent;
+    border-top: 1px solid transparent;
+    cursor: pointer;
+  }
+  
+  .mat-mdc-row:hover .mat-mdc-cell {
+    border-color: currentColor;
+  }

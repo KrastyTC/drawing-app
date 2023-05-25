@@ -51,9 +51,156 @@ export class DrawingBoardComponent implements AfterViewInit, OnDestroy
         this.cx.strokeStyle = '#000';
         this.figures.push(this.figure)
 
-        this.captureEvents(canvasEl);
+        this.http.get('./assets/data.json').subscribe(res =>
+        {
+            console.log('File contents:', res);
+            this.figures = res as IFigure[];
+            this.figures.forEach(element =>
+            {
+                this.cx.strokeStyle = element.rgb
+                element.lines.forEach(line =>
+                {
+                    this.drawOnCanvas(line.start, line.end)
+                });
+            });
+        });
+
+        //canvasEl.addEventListener('mousemove', this.onMouseMove.bind(this));
+
+        canvasEl.addEventListener('click', (event) =>
+        {
+            const rect = canvasEl.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+
+            this.handleClick(x, y);
+        });
+
+
+
+
+        // this.captureEvents(canvasEl);
     }
 
+    handleClick(x: number, y: number)
+    {
+        if (this.isInsideShape({ x, y }) == true)
+        {
+            let nearestFigure: any;
+            let minDistance = Infinity;
+            this.figures.forEach(figure =>
+            {
+                figure.lines.forEach(line =>
+                {
+
+                    const distance = this.calculateDistance(line.start.x, line.start.y, x, y);
+                    if (distance < minDistance)
+                    {
+                        minDistance = distance;
+                        nearestFigure = figure;
+                    }
+                });
+            });
+            this.figure = nearestFigure;
+            console.log(this.figure);
+
+        }
+    }
+
+    calculateDistance(x1: number, y1: number, x2: number, y2: number): number
+    {
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    onMouseMove(event: MouseEvent)
+    {
+        const mousePosition = this.getMousePosition(event);
+
+        if (this.isInsideShape(mousePosition) == true)
+        {
+            console.log('Mouse is inside the shape');
+        }
+    }
+
+    getMousePosition(event: MouseEvent): { x: number, y: number }
+    {
+        const canvasEl: HTMLCanvasElement = this.canvas.nativeElement;
+        const rect = canvasEl.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        return { x, y };
+    }
+
+    isInsideShape(mousePosition: { x: number, y: number }): boolean
+    {
+        const canvasEl: HTMLCanvasElement = this.canvas.nativeElement;
+        const { x, y } = mousePosition;
+        const canvasWidth = canvasEl.width;
+        const outsidePoint = { x: canvasWidth, y };
+
+        let intersections = 0;
+        this.figures.forEach(figure =>
+        {
+            figure.lines.forEach(line =>
+            {
+
+                if (this.doLineSegmentsIntersect(mousePosition, outsidePoint, line.start, line.end) == true)
+                {
+                    intersections++;
+                }
+
+            });
+        });
+
+        return intersections % 2 === 1; // Odd number of intersections means inside
+    }
+
+    doLineSegmentsIntersect(
+        p0: { x: number, y: number },
+        p1: { x: number, y: number },
+        p2: { x: number, y: number },
+        p3: { x: number, y: number }
+    ): boolean
+    {
+        const d1 = this.calculateDirection(p2, p3, p0);
+        const d2 = this.calculateDirection(p2, p3, p1);
+        const d3 = this.calculateDirection(p0, p1, p2);
+        const d4 = this.calculateDirection(p0, p1, p3);
+
+        if (((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0)))
+        {
+            return true;
+        } else if (d1 === 0 && this.isPointOnSegment(p2, p3, p0))
+        {
+            return true;
+        } else if (d2 === 0 && this.isPointOnSegment(p2, p3, p1))
+        {
+            return true;
+        } else if (d3 === 0 && this.isPointOnSegment(p0, p1, p2))
+        {
+            return true;
+        } else if (d4 === 0 && this.isPointOnSegment(p0, p1, p3))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    calculateDirection(a: { x: number, y: number }, b: { x: number, y: number }, c: { x: number, y: number }): number
+    {
+        return (c.x - a.x) * (b.y - a.y) - (b.x - a.x) * (c.y - a.y);
+    }
+
+    isPointOnSegment(a: { x: number, y: number }, b: { x: number, y: number }, p: { x: number, y: number }): boolean
+    {
+        return (
+            (p.x >= Math.min(a.x, b.x) && p.x <= Math.max(a.x, b.x)) &&
+            (p.y >= Math.min(a.y, b.y) && p.y <= Math.max(a.y, b.y))
+        );
+    }
     captureEvents(canvasEl: HTMLCanvasElement)
     {
         this.drawingSubscription = fromEvent(canvasEl, 'mousedown')

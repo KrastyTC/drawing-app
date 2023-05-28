@@ -102,8 +102,18 @@ export class DrawingBoardComponent implements AfterViewInit, OnDestroy
                 });
             });
             this.figure = nearestFigure;
+            this.redraw();
+            this.cx.strokeStyle = "#ffa500"
+            this.figure.lines.forEach(line =>
+            {
+                this.drawOnCanvas(line.start, line.end)
+            });
             console.log(this.figure);
 
+        } else
+        {
+            this.redraw();
+            this.figure = { id: "0", rgb: "0", lines: [] };
         }
     }
 
@@ -267,6 +277,18 @@ export class DrawingBoardComponent implements AfterViewInit, OnDestroy
             this.table.renderRows();
         }
 
+    }
+
+    redraw()
+    {
+        this.figures.forEach(element =>
+        {
+            this.cx.strokeStyle = element.rgb
+            element.lines.forEach(line =>
+            {
+                this.drawOnCanvas(line.start, line.end)
+            });
+        });
     }
 
     newFigure()
